@@ -1,0 +1,8 @@
+﻿  stdafx.cpp
+c:\users\dal4s\source\repos\pingmaker\pingmaker\pingmaker\stdafx.h(14): warning C4067: 전처리기 지시문 다음에 예기치 않은 토큰이 있습니다. 줄 바꿈 문자가 필요합니다.
+  PingMaker.cpp
+c:\users\dal4s\source\repos\pingmaker\pingmaker\pingmaker\pingmaker.cpp(8): warning C4101: 'alldevs' :참조되지 않은 지역 변수입니다.
+c:\users\dal4s\source\repos\pingmaker\pingmaker\pingmaker\pingmaker.cpp(10): warning C4101: 'inum' :참조되지 않은 지역 변수입니다.
+c:\users\dal4s\source\repos\pingmaker\pingmaker\pingmaker\pingmaker.cpp(8): warning C4101: 'd' :참조되지 않은 지역 변수입니다.
+  PingMaker.vcxproj -> C:\Users\dal4s\Source\Repos\PingMaker\PingMaker\Debug\PingMaker.exe
+  PingMaker.vcxproj -> C:\Users\dal4s\Source\Repos\PingMaker\PingMaker\Debug\PingMaker.pdb (Full PDB)

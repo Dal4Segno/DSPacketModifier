@@ -1,6 +1,0 @@
-﻿  DSPacketModifier.cpp
-c:\users\dal4s\source\repos\dspacketmodifier\dspacketmodifier\dspacketmodifier\dspacketmodifier.cpp(8): warning C4101: 'alldevs' :참조되지 않은 지역 변수입니다.
-c:\users\dal4s\source\repos\dspacketmodifier\dspacketmodifier\dspacketmodifier\dspacketmodifier.cpp(10): warning C4101: 'inum' :참조되지 않은 지역 변수입니다.
-c:\users\dal4s\source\repos\dspacketmodifier\dspacketmodifier\dspacketmodifier\dspacketmodifier.cpp(8): warning C4101: 'd' :참조되지 않은 지역 변수입니다.
-  DSPacketModifier.vcxproj -> C:\Users\dal4s\Source\Repos\DSPacketModifier\DSPacketModifier\Debug\DSPacketModifier.exe
-  DSPacketModifier.vcxproj -> C:\Users\dal4s\Source\Repos\DSPacketModifier\DSPacketModifier\Debug\DSPacketModifier.pdb (Full PDB)
