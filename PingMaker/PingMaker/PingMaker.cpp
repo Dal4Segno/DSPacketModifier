@@ -2,68 +2,64 @@
 //
 
 #include "stdafx.h"
+#include "MakePing.h"
 
-int main()
+int main(int argc, char * argv[])
 {
-	pcap_if_t *alldevs, *d;
-	pcap_t *fp = 0;
-	u_int inum, i = 0;
-	char errbuf[PCAP_ERRBUF_SIZE];
-	int res;
+	string input, output;
+	string injectType, injectFilename;
+	string srcIp, dstIp;
+	string srcMac, dstMac;
+	UINT16 dataLength;
 
-	pcap_pkthdr *header;
-	const u_char *pkt_data;
+	po::options_description desc("Allowed Options");
+	desc.add_options()
+		("help", "This Message")
+		("type", po::value<string>(&injectType), "What Type you want to inject into Ping. string || file")
+		("input", po::value<string>(&input), "What you want to inject into Ping.")
+		("output", po::value<string>(&output)->default_value("output.pcap"), "Name of Result file. Default is output.pcap")
+		("srcip", po::value<string>(&srcIp)->default_value("127.0.0.1"), "Source IP Address. Default is 127.0.0.1")
+		("dstip", po::value<string>(&dstIp)->default_value("127.0.0.1"), "Destinaton IP Address. Default is 127.0.0.1")
+		("srcmac", po::value<string>(&srcMac)->default_value("00:00:00:00:00:00"), "Source MAC Address. Default is 00:00:00:00:00:00")
+		("dstmac", po::value<string>(&dstMac)->default_value("00:00:00:00:00:00"), "Destinaton MAC Address. Default 00:00:00:00:00:00")
+		("size", po::value<UINT16>(&dataLength)->default_value(32), "Size of Ping");
 
-	fp = pcap_open_offline("C:/Users/dal4s/Desktop/EasyPungBased.pcap", errbuf);
-	if (fp == NULL)
+	po::variables_map vm;
+	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
+	po::notify(vm);
+
+	const string EXAMPLE = "pingmaker.exe --type=string --input=\"this is EXAMPLE\" --output=output.pcap";
+
+	if (vm.count("help"))
 	{
-		std::cout << errbuf;
+		cout << desc << "\n";
+	}
+	else if (!vm.count("type"))
+	{
+		cout << "type is NECESSARY option." << std::endl;
+		return -1;
+	}
+	else if (!vm.count("input"))
+	{
+		cout << "Are you sure you won't put anything in there?" << std::endl;
+		return -1;
+	}
+
+	for (const auto& it : vm) {
+		cout.width(10); 
+		cout << std::left << it.first.c_str() << " :: ";
+		auto& value = it.second.value();
+		if (auto v = boost::any_cast<UINT16>(&value))
+			cout << *v;
+		else if (auto v = boost::any_cast<string>(&value))
+			cout << *v;
+		else
+			cout << "error";
+		cout << "\n";
 	}
 	
-	const char * FLAG = "2ef7bde608ce5404e97d5f042f95f89f1c232871";
-	char data[32];
-	HANDLE hFile = CreateFileA("C:\\Users\\dal4s\\Desktop\\EasyPung.pcap",
-			GENERIC_WRITE,          // open for writing
-			0,                      // do not share
-			NULL,                   // default security
-			CREATE_ALWAYS,             // create new file only
-			FILE_ATTRIBUTE_NORMAL,  // normal file
-			NULL);                  // no attr. template
-	if (hFile == NULL)
-	{
-		std::cout << "Can't Make Result File\n";
-		return -1;
-	}
-
-	int index = 0;
-	DWORD dwBytesWrite;
-	while ((res = pcap_next_ex(fp, &header, &pkt_data)) >= 0)
-	{
-		if (res == 0)
-		{
-			continue;
-		}
-
-		WriteFile(hFile, &(header->ts.tv_sec), 4, &dwBytesWrite, NULL);
-		WriteFile(hFile, &(header->ts.tv_usec), 4, &dwBytesWrite, NULL);
-		WriteFile(hFile, &(header->caplen), 4, &dwBytesWrite, NULL);
-		WriteFile(hFile, &(header->len), 4, &dwBytesWrite, NULL);
-		WriteFile(hFile, pkt_data, 42, &dwBytesWrite, NULL);
-		memset(data, FLAG[index], 32);
-		WriteFile(hFile, data, 32, &dwBytesWrite, NULL);
-		index++;
-		if (index == 40)
-		{
-			break;
-		}
-	}
-
-	if (res == -1)
-	{
-		fprintf(stderr, "Error reading the packets: %s\n", pcap_geterr(fp));
-		return -1;
-	}
-
+	MakePing(vm);
+	
     return 0;
 }
 
