@@ -5,5 +5,8 @@
 *.opendb
 *.tlog
 *.ipch
-.\PingMaker\ipch\*
+PingMaker/ipch
 *.suo
+PingMaker/PingMaker.VC.db
+PingMaker/.vs
+*.db
