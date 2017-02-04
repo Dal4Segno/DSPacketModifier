@@ -4,3 +4,6 @@
 
 *.opendb
 *.tlog
+*.ipch
+.\PingMaker\ipch\*
+*.suo
