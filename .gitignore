@@ -9,4 +9,6 @@ PingMaker/ipch
 *.suo
 PingMaker/PingMaker.VC.db
 PingMaker/.vs
+PingMaker/PingMaker/Debug/*
+PingMaker/Debug/*
 *.db

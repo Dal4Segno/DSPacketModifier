@@ -14,9 +14,11 @@
 #include <Windows.h>
 
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <map>
 #include <string>
+#include <random>
 
 #include <boost/program_options.hpp>
 using std::string;
