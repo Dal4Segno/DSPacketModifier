@@ -1,14 +1,17 @@
 ﻿################################################################################
 # 이 .gitignore 파일은 Microsoft(R) Visual Studio에서 자동으로 만들어졌습니다.
 ################################################################################
-
+*.pch
+*.obj
 *.opendb
 *.tlog
 *.ipch
 PingMaker/ipch
 *.suo
 PingMaker/PingMaker.VC.db
-PingMaker/.vs
+PingMaker/.vs/*
 PingMaker/PingMaker/Debug/*
 PingMaker/Debug/*
 *.db
+*.log
+/PingMaker/PingMaker/Release/vc140.pdb
