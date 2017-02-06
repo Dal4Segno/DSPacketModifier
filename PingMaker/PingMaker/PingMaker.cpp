@@ -10,7 +10,7 @@ int main(int argc, char * argv[])
 	string injectType, injectFilename;
 	string srcIp, dstIp;
 	string srcMac, dstMac;
-	UINT16 dataLength;
+	string dataLength;
 
 	po::options_description desc("Allowed Options");
 	desc.add_options()
@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
 		("dstip", po::value<string>(&dstIp)->default_value("127.0.0.1"), "Destinaton IP Address. Default is 127.0.0.1")
 		("srcmac", po::value<string>(&srcMac)->default_value("00:00:00:00:00:00"), "Source MAC Address. Default is 00:00:00:00:00:00")
 		("dstmac", po::value<string>(&dstMac)->default_value("00:00:00:00:00:00"), "Destinaton MAC Address. Default 00:00:00:00:00:00")
-		("size", po::value<UINT16>(&dataLength)->default_value(32), "Size of Ping");
+		("size", po::value<string>(&dataLength)->default_value("32"), "Size of Ping");
 
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
@@ -49,9 +49,7 @@ int main(int argc, char * argv[])
 		cout.width(10); 
 		cout << std::left << it.first.c_str() << " :: ";
 		auto& value = it.second.value();
-		if (auto v = boost::any_cast<UINT16>(&value))
-			cout << *v;
-		else if (auto v = boost::any_cast<string>(&value))
+		if (auto v = boost::any_cast<string>(&value))
 			cout << *v;
 		else
 			cout << "error";
