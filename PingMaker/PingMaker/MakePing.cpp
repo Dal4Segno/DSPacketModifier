@@ -66,8 +66,8 @@ bool MakePing(const po::variables_map & vm)
 	std::vector<UINT8> srcMac{ 0, 8 }, dstMac{ 0, 8 };
 	UINT16 u16SequenceNumber = 0;
 	
-	inet_pton(AF_INET, "192.168.0.1", &(srcIp.sin_addr));
-	inet_pton(AF_INET, "192.168.0.2", &(dstIp.sin_addr));
+	inet_pton(AF_INET, any_cast<string>(vm.at("srcip").value()).c_str(), &(srcIp.sin_addr));
+	inet_pton(AF_INET, any_cast<string>(vm.at("dstip").value()).c_str(), &(dstIp.sin_addr));
 	UINT16 u16DataLength = std::stoi(any_cast<string>(vm.at("size").value()));
 	IpFrame ipFrame;
 	SetIpFrame(ipFrame, u16DataLength, srcIp, dstIp);
