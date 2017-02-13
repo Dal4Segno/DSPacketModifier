@@ -11,9 +11,9 @@
 #include <tchar.h>
 
 #include <pcap.h>
-#include <Windows.h>
 
 #include <iostream>
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <map>

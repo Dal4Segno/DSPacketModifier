@@ -156,12 +156,17 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MakePing.h" />
+    <ClInclude Include="DSPacket.h" />
+    <ClInclude Include="IcmpHeader.h" />
+    <ClInclude Include="IpFrame.h" />
+    <ClInclude Include="PacketGlobalHeader.h" />
+    <ClInclude Include="PingMaker.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MakePing.cpp" />
+    <ClCompile Include="DSPacket.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="PingMaker.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

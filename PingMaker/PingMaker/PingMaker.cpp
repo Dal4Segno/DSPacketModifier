@@ -1,63 +1,133 @@
-// PingMaker.cpp : 콘솔 응용 프로그램에 대한 진입점을 정의합니다.
-//
-
+#pragma once
 #include "stdafx.h"
-#include "MakePing.h"
+#include "PingMaker.h"
 
-int main(int argc, char * argv[])
+
+PingMaker::PingMaker()
 {
-	string input, output;
-	string injectType, injectFilename;
-	string srcIp, dstIp;
-	string srcMac, dstMac;
-	string dataLength;
-
-	po::options_description desc("Allowed Options");
-	desc.add_options()
-		("help", "This Message")
-		("type", po::value<string>(&injectType), "What Type you want to inject into Ping. string || file")
-		("input", po::value<string>(&input), "What you want to inject into Ping.")
-		("output", po::value<string>(&output)->default_value("output.pcap"), "Name of Result file. Default is output.pcap")
-		("srcip", po::value<string>(&srcIp)->default_value("127.0.0.1"), "Source IP Address. Default is 127.0.0.1")
-		("dstip", po::value<string>(&dstIp)->default_value("127.0.0.1"), "Destinaton IP Address. Default is 127.0.0.1")
-		("srcmac", po::value<string>(&srcMac)->default_value("00:00:00:00:00:00"), "Source MAC Address. Default is 00:00:00:00:00:00")
-		("dstmac", po::value<string>(&dstMac)->default_value("00:00:00:00:00:00"), "Destinaton MAC Address. Default 00:00:00:00:00:00")
-		("size", po::value<string>(&dataLength)->default_value("32"), "Size of Ping");
-
-	po::variables_map vm;
-	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
-	po::notify(vm);
-
-	const string EXAMPLE = "pingmaker.exe --type=string --input=\"this is EXAMPLE\" --output=output.pcap";
-
-	if (vm.count("help"))
-	{
-		cout << desc << "\n";
-	}
-	else if (!vm.count("type"))
-	{
-		cout << "type is NECESSARY option." << std::endl;
-		return -1;
-	}
-	else if (!vm.count("input"))
-	{
-		cout << "Are you sure you won't put anything in there?" << std::endl;
-		return -1;
-	}
-
-	for (const auto& it : vm) {
-		cout.width(10); 
-		cout << std::left << it.first.c_str() << " :: ";
-		auto& value = it.second.value();
-		if (auto v = boost::any_cast<string>(&value))
-			cout << *v;
-		else
-			cout << "error";
-		cout << "\n";
-	}
-	
-	MakePing(vm);
-	
-    return 0;
 }
 
+PingMaker::PingMaker(const po::variables_map &vm)
+{
+	using boost::any_cast;
+	injectType = any_cast<string>(vm["type"].value());
+	srcIp = any_cast<string>(vm["srcip"].value());
+	dstIp = any_cast<string>(vm["dstip"].value());
+	InitIpFrame(srcIp, dstIp);
+	//srcMac = any_cast<string>(vm["srcmac"].value());
+	//dstMac = any_cast<string>(vm["dstmac"].value());
+	InitEthernetFrame(srcMac, dstMac);
+	dataLength = std::stoi(any_cast<string>(vm["size"].value()));
+
+	if (injectType == "file")
+	{
+		injectionFile.open(any_cast<string>(vm["input"].value()), std::ifstream::binary);
+		injectionFile.seekg(0, injectionFile.end);
+		unsigned int fileLength = injectionFile.tellg();
+		injectionFile.seekg(0, injectionFile.beg);
+		data.resize(fileLength);
+		injectionFile.read(data.data(), fileLength);
+	}
+	else if (injectType == "string")
+	{
+		injectionString += any_cast<string>(vm["input"].value());
+		std::copy(injectionString.begin(), injectionString.end(), std::back_inserter(data));
+	}
+	pData = reinterpret_cast<uint16_t *>(data.data());
+	outputFile.open(any_cast<string>(vm["output"].value()), std::ofstream::binary);
+	
+	UINT16 *p = (UINT16 *)&icmpHeader;
+	for (int i = 0; i < 4; i++)
+	{
+		icmpPartialCheckSum = *(p + i);
+	}
+}
+
+PingMaker::~PingMaker()
+{
+	if (injectType == "file")
+		injectionFile.close();
+	outputFile.close();
+}
+
+void PingMaker::InitEthernetFrame(const string srcMacString, const string dstMacString)
+{
+	//ethernetFrame.srcMac;
+	//ethernetFrame.dstMac;
+	ethernetFrame.packetType = 0x08;
+}
+
+void PingMaker::InitIpFrame(const string srcIpString, const string dstIpString)
+{
+	ipFrame.u8IpVersionAndLength = 0x45;	// Version 4 and 20 Header Size
+	ipFrame.u8IpTypeOfService = 0x00;
+	ipFrame.u16IpTotalLength = _byteswap_ushort(20 + 8 + dataLength);
+	ipFrame.u16IpIdentification;
+	ipFrame.u16FragmentOffset = 0;
+	ipFrame.u8IpTimeToLive = 250;
+	ipFrame.u8IpProtocol = 0x01;	// ICMP
+	ipFrame.u8IpCheckSum = 0;
+	
+	inet_pton(AF_INET, this->srcIp.c_str(), &(ipFrame.srcIp));
+	inet_pton(AF_INET, this->dstIp.c_str(), &(ipFrame.dstIp));
+}
+
+void PingMaker::SetPacketHeader()
+{
+	GetTimeOfDay(&packetHeader.ts);
+	packetHeader.caplen = 14 + 20 + 8 + dataLength;
+	packetHeader.len = packetHeader.caplen;
+}
+
+void PingMaker::SetIpFrame()
+{
+	std::uniform_int_distribution<> distTimeToLive(1, 240);
+	std::uniform_int_distribution<> distIdentification(1, 0xFFFF);
+	ipFrame.u8IpTimeToLive = distTimeToLive(gen);
+	ipFrame.u16IpIdentification = distIdentification(gen);
+	ipFrame.u8IpCheckSum = 0;
+
+	uint16_t *p = (uint16_t *)&ipFrame;
+	ipFrame.u8IpCheckSum = GetInternetCheckSum(20, p);
+}
+
+void PingMaker::SetIcmpFrame(uint16_t *pData)
+{
+	icmpHeader.u16IcmpSequenceNumber = sequenceNumber;
+	++sequenceNumber;
+
+	UINT32 sum32 = icmpPartialCheckSum;
+	UINT32 sum16 = 0;
+	for (int i = 0; i < (dataLength / 2); i++)
+	{
+		sum32 += *(pData + i);
+	}
+	sum32 = (sum32 >> 16) + (sum32 & 0xFFFF);
+	sum32 += (sum32 >> 16);
+
+	uint16_t *p = (uint16_t *)&sum32;
+	sum16 = *(p)+*(p + 1);
+	sum16 += *(p);
+	icmpHeader.u16IcmpCheckSum = (~sum32 & 0xFFFF) - 9;
+}
+
+void PingMaker::WritePacketToOutput()
+{
+	outputFile.write(reinterpret_cast<char *>(&packetHeader), sizeof(pcap_pkthdr));
+	outputFile.write(reinterpret_cast<char *>(&ethernetFrame), sizeof(EthernetFrame));
+	outputFile.write(reinterpret_cast<char *>(&ipFrame), sizeof(IpFrame));
+	outputFile.write(reinterpret_cast<char *>(&icmpHeader), sizeof(IcmpHeader));
+	outputFile.write(reinterpret_cast<char *>(pData), dataLength);
+}
+
+void PingMaker::MakePcap()
+{
+	outputFile.write(reinterpret_cast<char *>(&globalHeader), sizeof(PacketGlobalHeader));
+	for (uint64_t i = 0; i < data.size(); i += dataLength)
+	{
+		SetPacketHeader();
+		SetIcmpFrame(pData);
+		WritePacketToOutput();
+		pData += (dataLength / 2);
+	}
+}
